@@ -78,8 +78,8 @@ let rec lookfor name env =
 let rec value_of_expr expr env =
   match expr with
   | FunctionNode _ -> ruleFunction expr env
-  | CallNode (fexpr, pexpr) -> ruleCallByValue env fexpr pexpr
-  (*| CallNode (fexpr, pexpr) -> ruleCallByName env fexpr pexpr *)
+  (*| CallNode (fexpr, pexpr) -> ruleCallByValue env fexpr pexpr*)
+  | CallNode (fexpr, pexpr) -> ruleCallByName env fexpr pexpr 
   | IfthenelseNode (cond, bthen, belse) -> ruleIf env cond bthen belse
   | LetNode (ident, bvalue, bin) -> ruleLet env ident bvalue bin
   | LetrecNode (ident, bvalue, bin) -> ruleLetrec env ident bvalue bin
@@ -96,7 +96,8 @@ let rec value_of_expr expr env =
 and ruleName env name =
   match lookfor name env with
   | NotFound -> ErrorValue (UnknownIdentError name)
-  (* A completer*)
+  | Found FixPoint(expr, envFix) -> FrozenValue(expr, (name, FixPoint(expr, envFix))::envFix)
+  | Found FrozenValue(expr, env) -> value_of_expr expr env
   | Found value -> value
 
 (* ========================================================*)
@@ -104,8 +105,12 @@ and ruleName env name =
 (* Fonction d'évaluation d'un let *)
 (* "let ident = bvalue in bin" *)
 and ruleLet env ident bvalue bin =
-  (* A traiter*)
-  ErrorValue UndefinedExpressionError
+  let value = value_of_expr bvalue env in
+  match value with
+    | ErrorValue _ as result -> result
+    | _ ->
+      let new_env = (ident, value)::env in 
+        value_of_expr bin new_env
 
 (* ========================================================*)
 (* ruleBinary : environment -> binary -> ast- > ast -> valueType *)
@@ -161,39 +166,56 @@ and ruleUnary env op exp =
 (* Fonction d'évaluation d'une conditionnelle *)
 (* "if cond then bthen else belse" *)
 and ruleIf env cond bthen belse =
-  (* A traiter*)
-  ErrorValue UndefinedExpressionError
+    let value = value_of_expr cond env in
+    match value with
+    | BooleanValue true -> value_of_expr bthen env
+    | BooleanValue false -> value_of_expr belse env
+    | _ -> ErrorValue TypeMismatchError
+  
 
 (* ========================================================*)
 (* ruleFunction : ast -> environment -> valueType *)
 (* Fonction d'évaluation d'une définition de fonction *)
 and ruleFunction expr env =
-  (* A traiter*)
-  ErrorValue UndefinedExpressionError
+  FrozenValue(expr, env)
 
 (* Appel par nom *)
 (* ========================================================*)
 (* ruleCallByName : environment -> ast -> ast -> valueType *)
 (* Fonction d'évaluation d'un appel de fonction avec passage de paramètre par nom *)
 and ruleCallByName env fexpr pexpr =
-  (* A traiter*)
-  ErrorValue UndefinedExpressionError
+  (* Une deuxi`eme s ́emantique est possible pour les appels de fonctions, l’appel par nom : le
+calcul des param`etres est suspendu (constructeur de valeur FrozenValue) et l’appel de la
+fonction est ex ́ecut ́e. La valeur des param`etres sera calcul ́ee lors de l’acc`es au param`etre.
+Implanter la s ́emantique de l’appel par nom (ruleCallByName)
+r*)
+  match value_of_expr fexpr env with
+  | ErrorValue _ as result -> result
+  | FrozenValue(FunctionNode(x, expr3), funEnv) ->
+    value_of_expr expr3 ((x, FrozenValue(pexpr, env))::funEnv)
+  | _ -> ErrorValue TypeMismatchError
+    
 
 (* ========================================================*)
 (* ruleCallByValue : environment -> ast -> ast -> valueType *)
 (* Fonction d'évaluation d'un appel de fonction avec passage de paramètre par valeur *)
 and ruleCallByValue env fexpr pexpr =
-  (* Appel par valeur *)
-  (* A traiter*)
-  ErrorValue UndefinedExpressionError
+  let v2 = value_of_expr pexpr env in
+  match v2 with
+  | ErrorValue _ as result -> result
+  | _ -> let v1 = value_of_expr fexpr env in
+    match v1 with
+    | ErrorValue _ as result -> result
+    | FrozenValue(FunctionNode(x, expr3), funEnv) ->
+      value_of_expr expr3 ((x, v2)::funEnv)
+    | _ -> ErrorValue TypeMismatchError
 
-(* ========================================================*)
+  (* ========================================================*)
 (* ruleLetrec : environment -> string -> ast- > ast -> valueType *)
 (* Fonction d'évaluation d'un let rec*)
 (* "letrec ident = bvalue in bin" *)
 and ruleLetrec env ident bvalue bin =
-  (* A traiter*)
-  ErrorValue UndefinedExpressionError
+  value_of_expr bin ((ident, FixPoint(bvalue, env))::env)
 
 (* ========================================================*)
 (* ruleTrue : valueType *)
