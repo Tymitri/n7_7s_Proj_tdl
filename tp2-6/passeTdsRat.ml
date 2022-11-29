@@ -13,8 +13,41 @@ type t2 = Ast.AstTds.programme
 (* Vérifie la bonne utilisation des identifiants et tranforme l'expression
 en une expression de type AstTds.expression *)
 (* Erreur si mauvaise utilisation des identifiants *)
-let analyse_tds_expression tds e = (AstTds.Booleen true) (* failwith "todo"*)
-
+let rec analyse_tds_expression tds e = 
+  match e with
+  (* Appel de fonction représenté par le nom de la fonction et la liste des paramètres réels *)
+  | AstSyntax.AppelFonction (str, el) -> 
+    (match (chercherGlobalement tds str) with
+    | None -> raise (IdentifiantNonDeclare str)
+    | Some i -> 
+      (match (info_ast_to_info i) with
+      | InfoFun (_,_, _) -> 
+        let elTds = List.map (fun expr -> analyse_tds_expression tds expr) el in
+        AstTds.AppelFonction(i, elTds)
+      | _ -> raise (MauvaiseUtilisationIdentifiant str)))
+  (* Accès à un identifiant représenté par son nom *)
+  | AstSyntax.Ident info -> 
+    (match chercherGlobalement tds info with
+    | Some i -> 
+      (match (info_ast_to_info i) with
+      | InfoConst (_, value) -> AstTds.Entier(value)
+      | InfoVar (_, _, _, _) -> AstTds.Ident i
+      | InfoFun (str,_, _) -> raise (MauvaiseUtilisationIdentifiant str))
+    | None -> raise (IdentifiantNonDeclare info))
+  (* Booléen *)
+  | AstSyntax.Booleen (b) -> AstTds.Booleen(b)
+  (* Entier *)
+  | AstSyntax.Entier (e) -> AstTds.Entier(e)
+  (* Opération unaire représentée par l'opérateur et l'opérande *)
+  | AstSyntax.Unaire (op, e1) -> 
+    let ne = analyse_tds_expression tds e1 in 
+    AstTds.Unaire(op, ne)
+  (* Opération binaire représentée par l'opérateur, l'opérande gauche et l'opérande droite *)
+  | AstSyntax.Binaire (op, e1, e2) -> 
+    let ne1 = analyse_tds_expression tds e1 in
+    let ne2 = analyse_tds_expression tds e2 in
+    AstTds.Binaire(op, ne1, ne2)
+    
 
 (* analyse_tds_instruction : tds -> info_ast option -> AstSyntax.instruction -> AstTds.instruction *)
 (* Paramètre tds : la table des symboles courante *)
@@ -147,8 +180,25 @@ and analyse_tds_bloc tds oia li =
 (* Vérifie la bonne utilisation des identifiants et tranforme la fonction
 en une fonction de type AstTds.fonction *)
 (* Erreur si mauvaise utilisation des identifiants *)
-let analyse_tds_fonction maintds (AstSyntax.Fonction(t,n,lp,li))  =
-  failwith "TO DO"
+let analyse_tds_fonction maintds (AstSyntax.Fonction(typ, ident, lp, li))  =
+  let analyseParam tds (paramTyp, paramStr) = 
+      match (chercherLocalement tds paramStr) with
+      | Some _ -> raise (DoubleDeclaration paramStr)
+      | None ->  
+        let infoVar = info_to_info_ast (InfoVar (paramStr, paramTyp, 0, "")) in 
+        ajouter tds paramStr infoVar; 
+        (typ, infoVar)
+  in
+  match (chercherGlobalement maintds ident) with 
+  | Some _ -> raise (DoubleDeclaration ident)
+  | None -> 
+    let infoAst = info_to_info_ast (InfoFun(ident, typ, (List.map fst lp)))  in
+    ajouter maintds ident infoAst;
+    let tdsFille = creerTDSFille maintds in 
+    let infoParam = List.map (analyseParam tdsFille) lp in
+    let bloc = analyse_tds_bloc tdsFille (Some infoAst) li in
+    AstTds.Fonction (typ, infoAst, infoParam, bloc)
+  
 
 (* analyser : AstSyntax.programme -> AstTds.programme *)
 (* Paramètre : le programme à analyser *)
