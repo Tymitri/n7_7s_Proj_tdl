@@ -7,7 +7,7 @@ open Tds
 open Tam
 
 type t1 = AstPlacement.programme
-type t2 = String
+type t2 = string
 
 
 (* analyse_code_expression : AstPlacement.expression -> String *)
