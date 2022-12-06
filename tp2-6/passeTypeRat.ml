@@ -23,12 +23,10 @@ let rec analyse_type_expression e =
   | AstTds.AppelFonction (info, el) ->
     (match (info_ast_to_info info) with 
     | InfoFun(_, typ, typList) -> 
-      let nel = List.map analyse_type_expression el in
-      let (listInstr, typList2) = List.split nel in
+      let (listInstr, typList2) = List.split (List.map analyse_type_expression el) in
       if (Type.est_compatible_list typList typList2) 
       then (AstType.AppelFonction(info, listInstr), typ)
-      else raise (TypesParametresInattendus (typList, typList2))
-      
+      else raise (TypesParametresInattendus (typList, typList2)) 
     | _ -> failwith "Internal Error")
   (* Accès à un identifiant représenté par son nom *)
   | AstTds.Ident info -> 
@@ -42,9 +40,10 @@ let rec analyse_type_expression e =
   (* Opération unaire représentée par l'opérateur et l'opérande *)
   | AstTds.Unaire (op, e1) -> 
     let (ne1, te1) = analyse_type_expression e1 in 
-      (match op with
-      | AstSyntax.Numerateur -> (AstType.Unaire(AstType.Numerateur, ne1), te1)
-      | AstSyntax.Denominateur -> (AstType.Unaire(AstType.Denominateur, ne1), te1))
+      (match (op, te1) with
+      | (AstSyntax.Numerateur, Type.Rat) -> (AstType.Unaire(AstType.Numerateur, ne1), Type.Int)
+      | (AstSyntax.Denominateur, Type.Rat) -> (AstType.Unaire(AstType.Denominateur, ne1), Type.Int)
+      | _ -> raise (TypeInattendu(te1, Type.Rat)))
   (* Opération binaire représentée par l'opérateur, l'opérande gauche et l'opérande droite *)
   | AstTds.Binaire (op, e1, e2) -> 
     let (ne1, te1) = analyse_type_expression e1 in
@@ -130,9 +129,7 @@ en une fonction de type AstType.fonction *)
 let analyse_type_fonction (AstTds.Fonction (typ, info, lp, bloc)) =
   List.iter (fun (argTyp, argInfo) -> modifier_type_variable argTyp argInfo) lp;
 
-  let paramTypeList = List.map (fun (argTyp, _) -> argTyp) lp in
-  let paramInfoList = List.map (fun (_, argInfo) -> argInfo) lp in
-
+  let (paramTypeList, paramInfoList) = List.split lp in
   modifier_type_fonction typ paramTypeList info;
   let nb = analyse_type_bloc bloc in
   AstType.Fonction(info, paramInfoList, nb)

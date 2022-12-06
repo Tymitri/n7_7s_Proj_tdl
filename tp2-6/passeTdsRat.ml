@@ -187,7 +187,7 @@ let analyse_tds_fonction maintds (AstSyntax.Fonction(typ, ident, lp, li))  =
       | None ->  
         let infoVar = info_to_info_ast (InfoVar (paramStr, paramTyp, 0, "")) in 
         ajouter tds paramStr infoVar; 
-        (typ, infoVar)
+        (paramTyp, infoVar)
   in
   match (chercherGlobalement maintds ident) with 
   | Some _ -> raise (DoubleDeclaration ident)
