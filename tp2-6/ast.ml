@@ -7,6 +7,7 @@ sig
    type instruction
    type fonction
    type programme
+   type affectable
 end
 
 
@@ -22,12 +23,17 @@ type unaire = Numerateur | Denominateur
 (* Opérateurs binaires de Rat *)
 type binaire = Fraction | Plus | Mult | Equ | Inf
 
+(* Affectables de Rat *)
+type affectable =
+ (* Accès à un identifiant représenté par son nom *)
+  | Ident of string
+ (* Défférencement : accès en lecture ou ́ecriture à la valeur pointee par A*)
+  | Deref of affectable
+
 (* Expressions de Rat *)
 type expression =
   (* Appel de fonction représenté par le nom de la fonction et la liste des paramètres réels *)
   | AppelFonction of string * expression list
-  (* Accès à un identifiant représenté par son nom *)
-  | Ident of string
   (* Booléen *)
   | Booleen of bool
   (* Entier *)
@@ -36,6 +42,15 @@ type expression =
   | Unaire of unaire * expression
   (* Opération binaire représentée par l'opérateur, l'opérande gauche et l'opérande droite *)
   | Binaire of binaire * expression * expression
+  (* Pointeur nul *)
+  | Null
+  (* Affectable *)
+  | Affectable of affectable
+  (* Initialisation pointeur de type typ *)
+  | New of typ
+  (* Accès à l'adresse d'une variable *)
+  | Adress of string
+
 
 (* Instructions de Rat *)
 type bloc = instruction list
@@ -43,7 +58,7 @@ and instruction =
   (* Déclaration de variable représentée par son type, son nom et l'expression d'initialisation *)
   | Declaration of typ * string * expression
   (* Affectation d'une variable représentée par son nom et la nouvelle valeur affectée *)
-  | Affectation of string * expression
+  | Affectation of (affectable * expression)
   (* Déclaration d'une constante représentée par son nom et sa valeur (entier) *)
   | Constante of string * int
   (* Affichage d'une expression *)
@@ -54,6 +69,7 @@ and instruction =
   | TantQue of expression * bloc
   (* return d'une fonction *)
   | Retour of expression
+
 
 (* Structure des fonctions de Rat *)
 (* type de retour - nom - liste des paramètres (association type et nom) - corps de la fonction *)
