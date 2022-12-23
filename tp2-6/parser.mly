@@ -65,6 +65,10 @@ param : t=typ n=ID  {(t,n)}
 
 bloc : AO li=i* AF      {li}
 
+a :
+| PO MULT affect=a PF   {Valeur affect}
+| n = ID                    {Ident n}
+
 i :
 | t=typ n=ID EQUAL e1=e PV          {Declaration (t,n,e1)}
 | a1=a EQUAL e1=e PV            {Affectation (a1,e1)}
@@ -98,8 +102,7 @@ e :
 | NULL					  {Null}
 | PO NEW t=typ PF		  {New t}
 | ESP n=ID 				  {Adress n}
-| a=affect                {Affectable a}
+| affect=a            {Affectable affect}
 
-a :
-| n=id          {Ident n}
-| ESP a=affect  {Deref a}
+
+

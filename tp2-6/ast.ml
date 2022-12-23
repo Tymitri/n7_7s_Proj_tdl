@@ -27,8 +27,8 @@ type binaire = Fraction | Plus | Mult | Equ | Inf
 type affectable =
  (* Accès à un identifiant représenté par son nom *)
   | Ident of string
- (* Défférencement : accès en lecture ou ́ecriture à la valeur pointee par A*)
-  | Deref of affectable
+ (* Déréférencement : accès en lecture ou ́ecriture à la valeur pointee par A*)
+  | Valeur of affectable
 
 (* Expressions de Rat *)
 type expression =
@@ -58,7 +58,7 @@ and instruction =
   (* Déclaration de variable représentée par son type, son nom et l'expression d'initialisation *)
   | Declaration of typ * string * expression
   (* Affectation d'une variable représentée par son nom et la nouvelle valeur affectée *)
-  | Affectation of (affectable * expression)
+  | Affectation of affectable * expression
   (* Déclaration d'une constante représentée par son nom et sa valeur (entier) *)
   | Constante of string * int
   (* Affichage d'une expression *)
@@ -88,6 +88,10 @@ end
 module AstTds =
 struct
 
+  type affectable = 
+    | Ident of Tds.info_ast
+    | Valeur of affectable
+    
   (* Expressions existantes dans notre langage *)
   (* ~ expression de l'AST syntaxique où les noms des identifiants ont été
   remplacés par les informations associées aux identificateurs *)
@@ -98,6 +102,10 @@ struct
     | Entier of int
     | Unaire of AstSyntax.unaire * expression
     | Binaire of AstSyntax.binaire * expression * expression
+    | Affectable of affectable
+    | Null
+    | New of typ
+    | Adresse of Tds.info_ast
 
   (* instructions existantes dans notre langage *)
   (* ~ instruction de l'AST syntaxique où les noms des identifiants ont été
@@ -106,12 +114,12 @@ struct
   type bloc = instruction list
   and instruction =
     | Declaration of typ * Tds.info_ast * expression (* le nom de l'identifiant est remplacé par ses informations *)
-    | Affectation of  Tds.info_ast * expression (* le nom de l'identifiant est remplacé par ses informations *)
-    | Affichage of expression
+    | Affectation of  affectable * expression 
     | Conditionnelle of expression * bloc * bloc
     | TantQue of expression * bloc
     | Retour of expression * Tds.info_ast  (* les informations sur la fonction à laquelle est associé le retour *)
     | Empty (* les nœuds ayant disparus: Const *)
+
 
 
   (* Structure des fonctions dans notre langage *)
