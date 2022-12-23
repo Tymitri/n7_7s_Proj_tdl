@@ -20,7 +20,7 @@ let rec analyse_tds_affectable tds a modif =
           | InfoFun _ -> raise (MauvaiseUtilisationIdentifiant n)
           | InfoVar _ -> AstTds.Ident info
           | InfoConst (_,v) -> if modif then raise (MauvaiseUtilisationIdentifiant n)
-                               else AstTds.Entier (v)
+                               else AstTds.Entier v 
         end
     end
   | AstSyntax.Valeur v -> AstTds.Valeur (analyse_tds_affectable tds v modif)
@@ -133,7 +133,7 @@ let rec analyse_tds_instruction tds oia i =
       (* et obtention de l'expression transformée *)
       let ne = analyse_tds_expression tds e in
       (* Renvoie du nouvel affichage où l'expression remplacée par l'expression issue de l'analyse *)
-      AstTds.Affichage (ne)
+      AstTds.Affichage ne
   | AstSyntax.Conditionnelle (c,t,e) ->
       (* Analyse de la condition *)
       let nc = analyse_tds_expression tds c in
