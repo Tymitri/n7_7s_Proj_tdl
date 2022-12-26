@@ -53,14 +53,19 @@ let%test _ = not (est_compatible_list [Int] [Rat ; Int])
 let%test _ = not (est_compatible_list [Int ; Rat] [Rat ; Int])
 let%test _ = not (est_compatible_list [Bool ; Rat ; Bool] [Bool ; Rat ; Bool ; Int])
 
-let rec getTaille t =
+let getTaille t =
   match t with
   | Int -> 1
   | Bool -> 1
   | Rat -> 2
   | Undefined -> 0
-  | Pointeur t -> getTaille t
+  | Pointeur _ -> 1
   
 let%test _ = getTaille Int = 1
 let%test _ = getTaille Bool = 1
 let%test _ = getTaille Rat = 2
+let%test _ = getTaille (Pointeur Int) = 1
+let%test _ = getTaille (Pointeur Rat) = 1
+let%test _ = getTaille (Pointeur Bool) = 1
+let%test _ = getTaille (Pointeur (Pointeur Int)) = 1
+

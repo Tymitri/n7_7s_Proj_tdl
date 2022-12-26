@@ -11,9 +11,24 @@ type t1 = AstPlacement.programme
 type t2 = string
 
 
+(* analyse_code_affectable : AstPlacement.affectable -> String *)
+(* Paramètre a : l'affectable à analyser *)
+(* Transforme l'affectable en une expression de type String *)
+let rec analyse_code_affectable a = 
+  match a with
+  | AstType.Ident info -> 
+    begin
+      match info_ast_to_info info with
+      | InfoVar(_, t, depl, reg) -> load (getTaille t) depl reg 
+      | _ -> failwith "Internal Error"
+    end
+  | AstType.Valeur v -> failwith "TODO"
+  
+
+
 (* analyse_code_expression : AstPlacement.expression -> String *)
 (* Paramètre e : l'expression à analyser *)
-(* Tranforme l'expression en une expression de type String *)
+(* Transforme l'expression en une expression de type String *)
 let rec analyse_code_expression e =
   match e with
   | AstType.AppelFonction (info, lc) ->
@@ -21,10 +36,7 @@ let rec analyse_code_expression e =
     (match (info_ast_to_info info) with
     | InfoFun(f, _, _) -> c^call "ST" f
     | _ -> failwith "InternalError")
-  | AstType.Ident info -> 
-    (match (info_ast_to_info info) with
-    | InfoVar (_, t, depl, reg) -> load (getTaille t) depl reg 
-    | _ -> failwith "InternalError")
+  | AstType.Affectable a -> failwith "TODO"
   | AstType.Booleen b ->
     if b then loadl_int 1 else loadl_int 0
   | AstType.Entier i -> loadl_int i
@@ -45,6 +57,9 @@ let rec analyse_code_expression e =
     | AstType.EquInt -> c1 ^ c2 ^ subr "IEq"
     | AstType.EquBool -> c1 ^ subr "B2I" ^ c2 ^ subr "B2I" ^ subr "IEq" 
     | AstType.Inf -> c1 ^ c2 ^ subr "ILss") (* VERIFIER *)
+    | AstType.Null -> failwith "TODO"
+    | AstType.New t -> failwith "TODO"
+    | AstType.Adress info -> failwith "TODO"
     
     
 
@@ -61,13 +76,16 @@ let rec analyse_code_instruction i =
         ne)^(store (getTaille t) depl reg))
       | _ -> failwith "Internal Error")
     end
-  | AstPlacement.Affectation (info,e) ->
+  | AstPlacement.Affectation (a,e) ->
     begin
-      (match (info_ast_to_info info) with
+      let na = analyse_code_affectable a in
+      let ne = analyse_code_expression e in
+      ne^na
+      (* (match (info_ast_to_info info) with
       | InfoVar(_, t, depl, reg) -> 
         ((load (getTaille t) depl reg)^(let ne = analyse_code_expression e in
         ne)^(store (getTaille t) depl reg))
-      | _ -> failwith "Internal Error")
+      | _ -> failwith "Internal Error") *)
     end
   | AstPlacement.AffichageInt e ->
     let ne = analyse_code_expression e in (ne^(subr "Iout"))

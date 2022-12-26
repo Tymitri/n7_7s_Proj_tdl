@@ -10,6 +10,12 @@ type t2 = Ast.AstPlacement.programme
 
 let getTailleList liste = List.fold_right (fun r e -> getTaille r + e) liste 0
 
+(* analyse_placement_affectable : AstType.affectable -> AstPlacement.affectable *)
+(* Paramètre a : l'affectable à analyser *)
+(* Vérifie le bon placement mémoire et transforme l'affectable
+en une expression de type AstPlacement.affectable *)
+(* Erreur si mauvais placement mémoire *)
+let analyse_placement_affectable a = a
 
 (* analyse_placement_expression : AstType.expression -> AstPlacement.expression *)
 (* Paramètre e : l'expression à analyser *)
@@ -36,8 +42,8 @@ let rec analyse_placement_instruction (i, depl, reg) =
         (AstPlacement.Declaration(info, e), getTaille t))
       | _ -> failwith "Internal Error")
     end
-  | AstType.Affectation (info,e) ->
-        (AstPlacement.Affectation(info, e), 0)
+  | AstType.Affectation (a,e) ->
+        (AstPlacement.Affectation(a, e), 0)
   | AstType.AffichageInt e ->
       (AstPlacement.AffichageInt e, 0)
   | AstType.AffichageRat e ->

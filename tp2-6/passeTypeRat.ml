@@ -12,6 +12,28 @@ let getType info =
   | InfoVar(_, typ, _, _) -> typ
   | _ -> failwith "Internal error"
 
+
+(* analyse_type_affectable : AstTds.affectable -> AstType.affectable * type *)
+(* Paramètre a : l'affectable à analyser *)
+(* Vérifie le bon typage et tranforme l'affectable en (AstType.affectable * typ) *)
+(* Erreur si mauvais typage *)
+let rec analyse_type_affectable a = 
+  match a with
+  | AstTds.Ident info -> 
+    begin
+      match info_ast_to_info info with
+      | InfoVar (_, t,_,_) -> (AstType.Ident info, t)
+      | InfoConst _ -> (AstType.Ident info, Int)
+      | _ -> failwith ("Internal Eror : symbol not found")
+    end
+  | AstTds.Valeur a -> 
+    begin
+      match analyse_type_affectable a with
+      | (na, Pointeur t) -> (AstType.Valeur na, t)
+      | _ -> raise NotAPointer
+    end  
+  
+
 (* analyse_type_expression : AstTds.expression -> AstType.expression * type *)
 (* Paramètre e : l'expression à analyser *)
 (* Vérifie le bon typage et tranforme l'expression
@@ -29,10 +51,9 @@ let rec analyse_type_expression e =
       else raise (TypesParametresInattendus (typList, typList2)) 
     | _ -> failwith "Internal Error")
   (* Accès à un identifiant représenté par son nom *)
-  | AstTds.Ident info -> 
-    (match (info_ast_to_info info) with 
-    | InfoVar(_, typ, _, _) -> (AstType.Ident(info), typ)
-    | _ -> failwith "Internal Error")
+  | AstTds.Affectable a -> 
+    let (na, t) = analyse_type_affectable a in 
+    (AstType.Affectable na, t)
   (* Booléen *)
   | AstTds.Booleen b -> (AstType.Booleen b, Type.Bool)
   (* Entier *)
@@ -58,9 +79,15 @@ let rec analyse_type_expression e =
     | (AstSyntax.Inf, Type.Int, Type.Int ) -> AstType.Binaire(AstType.Inf, ne1, ne2), Type.Bool
     | (AstSyntax.Fraction, Type.Int, Type.Int ) -> AstType.Binaire(AstType.Fraction, ne1, ne2), Type.Rat
     | _ -> raise (TypeBinaireInattendu (op, te1, te2)))
+  | AstTds.Null -> Null, Pointeur Undefined
+  | AstTds.New t -> New t, Pointeur t
+  | AstTds.Adress info -> 
+    begin
+      match info_ast_to_info info with
+      | InfoVar _ -> (AstType.Adress info, Pointeur (getType info))
+      | _ -> failwith ("Internal Error")
+    end
 
-                      
-    
 
 (* analyse_type_instruction : AstTds.instruction -> AstType.instruction *)
 (* Paramètre i : l'instruction à analyser *)
@@ -69,12 +96,13 @@ en une instruction de type AstType.instruction *)
 (* Erreur si mauvais typage *)
 let rec analyse_type_instruction i =
   match i with
-  | AstTds.Affectation (info,e) ->
+  | AstTds.Affectation (a,e) ->
       begin
+        let (na, ta) = analyse_type_affectable a in
         let (ne,te) = analyse_type_expression e in
-          if (getType info = te) 
-          then AstType.Affectation (info, ne) 
-          else raise (TypeInattendu (te, getType info)) 
+          if Type.est_compatible ta te 
+          then AstType.Affectation (na, ne) 
+          else raise (TypeInattendu (te, ta)) 
       end
   | AstTds.Affichage e ->
       let (x, t) = analyse_type_expression e in
