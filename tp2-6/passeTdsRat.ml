@@ -19,8 +19,8 @@ let rec analyse_tds_affectable tds a modif =
           match info_ast_to_info info with
           | InfoFun _ -> raise (MauvaiseUtilisationIdentifiant n)
           | InfoVar _ -> AstTds.Ident info
-          | InfoConst (_,v) -> if modif then raise (MauvaiseUtilisationIdentifiant n)
-                               else AstTds.Entier v 
+          | InfoConst (_,_) -> if modif then raise (MauvaiseUtilisationIdentifiant n)
+                               else AstTds.Ident info                                   (* TODO modifié ! Checker si besoin *)
         end
     end
   | AstSyntax.Valeur v -> AstTds.Valeur (analyse_tds_affectable tds v modif)

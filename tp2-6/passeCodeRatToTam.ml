@@ -57,10 +57,16 @@ let rec analyse_code_expression e =
     | AstType.EquInt -> c1 ^ c2 ^ subr "IEq"
     | AstType.EquBool -> c1 ^ subr "B2I" ^ c2 ^ subr "B2I" ^ subr "IEq" 
     | AstType.Inf -> c1 ^ c2 ^ subr "ILss") (* VERIFIER *)
-    | AstType.Null -> failwith "TODO"
-    | AstType.New t -> failwith "TODO"
-    | AstType.Adress info -> failwith "TODO"
-    
+  | AstType.Null -> loadl_int 0     (* TODO : vérifier *)
+  | AstType.New t -> loadl_int (getTaille t) ^ subr "Malloc"     (* TODO : vérifier *)
+  | AstType.Adress info ->        
+    begin
+      match info_ast_to_info info with
+      | InfoVar(_, _, depl, reg) -> loada depl reg                             (* TODO : vérifier *)
+      | _ -> failwith "Internal Error"
+    end
+
+
     
 
 (* analyse_code_instruction : AstPlacement.instruction -> String *)
@@ -80,7 +86,7 @@ let rec analyse_code_instruction i =
     begin
       let na = analyse_code_affectable a in
       let ne = analyse_code_expression e in
-      ne^na
+      ne^na                                   (* TODO : vérifier faut-il un STOREI ??? *)                     
       (* (match (info_ast_to_info info) with
       | InfoVar(_, t, depl, reg) -> 
         ((load (getTaille t) depl reg)^(let ne = analyse_code_expression e in
