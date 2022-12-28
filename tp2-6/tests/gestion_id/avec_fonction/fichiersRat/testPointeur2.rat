@@ -1,0 +1,7 @@
+test {
+	int *x = (new int);
+	*x = 3;
+	int z = 18;
+	in *y = &z;
+	*y = *x;
+}

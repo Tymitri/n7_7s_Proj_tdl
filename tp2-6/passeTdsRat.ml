@@ -70,7 +70,7 @@ let rec analyse_tds_expression tds e =
         match info_ast_to_info info with
         | InfoFun _ -> raise (MauvaiseUtilisationIdentifiant n)
         | InfoVar _ -> AstTds.Adress info
-        | InfoConst _ -> raise (MauvaiseUtilisationIdentifiant n)
+        | InfoConst _ -> raise (MauvaiseUtilisationIdentifiant n)         (* TODO : A vérifier *)
         end
     end
   
