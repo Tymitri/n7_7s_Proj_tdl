@@ -1,4 +1,4 @@
-test {
+main {
 	int *x = (new int);
 	(*x) = 3;
 	int z = 18;

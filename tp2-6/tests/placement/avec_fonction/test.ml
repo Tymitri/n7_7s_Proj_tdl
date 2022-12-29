@@ -115,5 +115,3 @@ let%test "test12_f_r" =
     
 let%test "test12_f_i" = 
   test (pathFichiersRat^"test12.rat")  "f" ("i",1)  (-1, "LB")
-  
-

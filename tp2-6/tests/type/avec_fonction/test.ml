@@ -118,6 +118,38 @@ let%test_unit "test"=
 let%test_unit "code_factrec" = 
 let _ = compiler   (pathFichiersRat^"factrec.rat") in ()
 
+let%test_unit "testPointeur1" = 
+  let _ = compiler (pathFichiersRat^"testPointeur1.rat") in ()
+
+let%test_unit "testPointeur2" = 
+  let _ = compiler (pathFichiersRat^"testPointeur2.rat") in ()
+
+let%test_unit "testPointeur3" = 
+  let _ = compiler (pathFichiersRat^"testPointeur3.rat") in ()
+
+let%test_unit "testPointeur4" = 
+  let _ = compiler (pathFichiersRat^"testPointeur4.rat") in ()
+
+let%test_unit "testPointeurErreur1" = 
+  try 
+    let _ = compiler (pathFichiersRat^"testPointeurErreur1.rat")
+    in raise ErreurNonDetectee
+  with
+  | TypeInattendu (Bool, Int) -> () 
+
+let%test_unit "testPointeurErreur2" =
+  try 
+    let _ = compiler (pathFichiersRat^"testPointeurErreur2.rat")
+    in raise ErreurNonDetectee
+  with
+  | NotAPointer -> ()
+
+let%test_unit "testPointeurErreur3" =
+  try 
+    let _ = compiler (pathFichiersRat^"testPointeurErreur3.rat")
+    in raise ErreurNonDetectee
+  with
+  | TypeInattendu (_, _) -> ()
 
 (* Fichiers de tests de la génération de code -> doivent passer la TDS *)
 open Unix
