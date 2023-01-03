@@ -406,3 +406,21 @@ let%test_unit "all_tam" =
   let p_tam = "../../../../../tests/tam/sans_fonction/fichiersRat/" in
   let d = opendir p_tam in
   test d p_tam
+
+
+let%test_unit "test_cond_ss_else"= 
+  let _ = compiler (pathFichiersRat^"test_cond_ss_else.rat") in ()
+
+let%test_unit "test_cond_ss_else2"= 
+  let _ = compiler (pathFichiersRat^"test_cond_ss_else2.rat") in ()
+
+let%test_unit "test_cond_ss_else3"= 
+  let _ = compiler (pathFichiersRat^"test_cond_ss_else3.rat") in ()
+
+let%test_unit "test_cond_ss_else4"= 
+  try
+    let _ = compiler (pathFichiersRat^"test_cond_ss_else4.rat")
+    in raise ErreurNonDetectee
+with
+  | TypeInattendu(Rat,Bool) -> ()
+

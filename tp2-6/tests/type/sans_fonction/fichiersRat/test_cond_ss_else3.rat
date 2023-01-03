@@ -1,0 +1,5 @@
+test{
+  bool x = true;
+  if x {
+    int x = 3;
+  }

@@ -11,19 +11,47 @@ type t1 = AstPlacement.programme
 type t2 = string
 
 
+(* Permet de déterminer la valeur du pointeur (pour les pointeurs de pointeurs) *)
+let rec analyse_pointeur a =
+  match a with 
+  | AstType.Ident info -> 
+    (match info_ast_to_info info with 
+    | InfoVar(_, Pointeur t, dep, reg) -> 
+        (t, load 1 dep reg)
+    | _ -> failwith "Internal Error")
+  | AstType.Valeur aff -> 
+    let (t,str) = analyse_pointeur aff in 
+    begin match t with 
+    | Pointeur typ -> (typ, str^loadi 1)
+    | _ -> failwith "Internal Error"
+    end
+
+
 (* analyse_code_affectable : AstPlacement.affectable -> String *)
 (* Paramètre a : l'affectable à analyser *)
 (* Transforme l'affectable en une expression de type String *)
-let rec analyse_code_affectable a = 
+let rec analyse_code_affectable a stocker = 
   match a with
   | AstType.Ident info -> 
     begin
       match info_ast_to_info info with
-      | InfoVar(_, t, depl, reg) -> load (getTaille t) depl reg 
+      | InfoVar(_, t, depl, reg) -> 
+        if stocker
+          then store (getTaille t) depl reg 
+          else load (getTaille t) depl reg
+      | InfoConst(_, n) -> 
+        if stocker
+          then failwith "Internal Error"
+          else loadl_int n
       | _ -> failwith "Internal Error"
     end
   | AstType.Valeur v -> 
-    let nv = analyse_code_affectable v in nv
+    begin 
+      let (t,str) = analyse_pointeur v in 
+      if stocker
+        then str^storei (getTaille t)
+        else str^loadi (getTaille t)
+    end
   
 
 
@@ -38,7 +66,7 @@ let rec analyse_code_expression e =
     | InfoFun(f, _, _) -> c^call "ST" f
     | _ -> failwith "InternalError")
   | AstType.Affectable a -> 
-    let na = analyse_code_affectable a in na
+    let na = analyse_code_affectable a in na false
   | AstType.Booleen b ->
     if b then loadl_int 1 else loadl_int 0
   | AstType.Entier i -> loadl_int i
@@ -67,9 +95,14 @@ let rec analyse_code_expression e =
       | InfoVar(_, _, depl, reg) -> loada depl reg 
       | _ -> failwith "Internal Error"
     end
+  | AstType.Ternaire (e1, e2, e3) ->
+    let c1 = analyse_code_expression e1 in
+    let c2 = analyse_code_expression e2 in
+    let c3 = analyse_code_expression e3 in
+    let b2label = "Tern_Bloc2_" ^ getEtiquette () in
+    let endiflabel = "Tern_End_" ^ getEtiquette () in
+    c1 ^ jumpif 0 b2label ^ c2 ^ jump endiflabel ^ label b2label ^ c3 ^ label endiflabel
 
-
-    
 
 (* analyse_code_instruction : AstPlacement.instruction -> String *)
 (* Paramètre i : l'instruction à analyser *)
@@ -87,8 +120,8 @@ let rec analyse_code_instruction i =
   | AstPlacement.Affectation (a,e) ->
     begin
       let ne = analyse_code_expression e in
-      let na = analyse_code_affectable a in
-        (ne^na^storei 1)              (* TODO : à vérifier (le 1) *)    
+      let na = analyse_code_affectable a true in
+        (ne^na)              (* TODO : à vérifier (le 1) *)    
       (* (match (info_ast_to_info info) with
       | InfoVar(_, t, depl, reg) -> 
         ((load (getTaille t) depl reg)^(let ne = analyse_code_expression e in

@@ -61,6 +61,8 @@ rule token = parse
 | "*"          { MULT }
 | "<"          { INF }
 | "&"          { ESP }
+| "?"          { PT_INT }
+| ":"          { DEUX_PT }
 
 (* constantes entières *)
 | ("-")?['0'-'9']+ as i

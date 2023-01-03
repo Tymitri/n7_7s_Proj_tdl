@@ -73,6 +73,7 @@ struct
     | Null -> "null"^" "
     | New t -> "(new "^(string_of_type t)^")"
     | Adress n -> "&"^n
+    | Ternaire (e1, e2, e3) -> "("^(string_of_expression e1)^"?"^(string_of_expression e2)^":"^(string_of_expression e3)^")"
 
   (* Conversion des instructions *)
   let rec string_of_instruction i =
@@ -83,7 +84,8 @@ struct
     | Affichage e ->  "Affichage  : "^(string_of_expression e)^"\n"
     | Conditionnelle (c,t,e) ->  "Conditionnelle  : IF "^(string_of_expression c)^"\n"^
                                   "THEN \n"^((List.fold_right (fun i tq -> (string_of_instruction i)^tq) t ""))^
-                                  "ELSE \n"^((List.fold_right (fun i tq -> (string_of_instruction i)^tq) e ""))^"\n"
+                                  (if e =[] then "" else "ELSE \n"^((List.fold_right (fun i tq -> (string_of_instruction i)^tq) e "")))
+                                  ^"\n"
     | TantQue (c,b) -> "TantQue  : TQ "^(string_of_expression c)^"\n"^
                                   "FAIRE \n"^((List.fold_right (fun i tq -> (string_of_instruction i)^tq) b ""))^"\n"
     | Retour (e) -> "Retour  : RETURN "^(string_of_expression e)^"\n"

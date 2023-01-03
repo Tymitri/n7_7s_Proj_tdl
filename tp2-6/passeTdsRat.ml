@@ -73,6 +73,11 @@ let rec analyse_tds_expression tds e =
         | InfoConst _ -> raise (MauvaiseUtilisationIdentifiant n)         (* TODO : A vérifier *)
         end
     end
+  | AstSyntax.Ternaire (e1, e2, e3) -> 
+    let ne1 = analyse_tds_expression tds e1 in
+    let ne2 = analyse_tds_expression tds e2 in
+    let ne3 = analyse_tds_expression tds e3 in
+    AstTds.Ternaire (ne1, ne2, ne3)
   
     
 
@@ -162,7 +167,6 @@ let rec analyse_tds_instruction tds oia i =
         let ne = analyse_tds_expression tds e in
         AstTds.Retour (ne,ia)
       end
-
 
 (* analyse_tds_bloc : tds -> info_ast option -> AstSyntax.bloc -> AstTds.bloc *)
 (* Paramètre tds : la table des symboles courante *)

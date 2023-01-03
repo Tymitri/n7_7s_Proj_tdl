@@ -39,6 +39,8 @@ open Ast.AstSyntax
 %token NULL
 %token NEW
 %token ESP  	(* & *)
+%token PT_INT
+%token DEUX_PT
 
 (* Type de l'attribut synthétisé des non-terminaux *)
 %type <programme> prog
@@ -71,10 +73,11 @@ a :
 
 i :
 | t=typ n=ID EQUAL e1=e PV          {Declaration (t,n,e1)}
-| a1=a EQUAL e1=e PV            {Affectation (a1,e1)}
+| a1=a EQUAL e1=e PV                {Affectation (a1,e1)}
 | CONST n=ID EQUAL e=ENTIER PV      {Constante (n,e)}
 | PRINT e1=e PV                     {Affichage (e1)}
 | IF exp=e li1=bloc ELSE li2=bloc   {Conditionnelle (exp,li1,li2)}
+| IF exp=e li=bloc                  {Conditionnelle (exp, li, [])}
 | WHILE exp=e li=bloc               {TantQue (exp,li)}
 | RETURN exp=e PV                   {Retour (exp)}
 
@@ -88,7 +91,6 @@ typ :
 e : 
 | CALL n=ID PO lp=e* PF   {AppelFonction (n,lp)}
 | CO e1=e SLASH e2=e CF   {Binaire(Fraction,e1,e2)}
-// | n=ID                    {Ident n}
 | TRUE                    {Booleen true}
 | FALSE                   {Booleen false}
 | e=ENTIER                {Entier e}
@@ -102,7 +104,9 @@ e :
 | NULL					  {Null}
 | PO NEW t=typ PF		  {New t}
 | ESP n=ID 				  {Adress n}
-| affect=a            {Affectable affect}
+| affect=a                {Affectable affect}
+| PO e1=e PT_INT e2=e DEUX_PT e3=e PF {Ternaire (e1, e2, e3)}
+
 
 
 

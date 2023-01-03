@@ -50,6 +50,8 @@ type expression =
   | New of typ
   (* Accès à l'adresse d'une variable *)
   | Adress of string
+  (* Conditionnelle ternaire *)
+  | Ternaire of expression * expression * expression
 
 
 (* Instructions de Rat *)
@@ -65,7 +67,7 @@ and instruction =
   | Affichage of expression
   (* Conditionnelle représentée par la condition, le bloc then et le bloc else *)
   | Conditionnelle of expression * bloc * bloc
-  (*Boucle TantQue représentée par la conditin d'arrêt de la boucle et le bloc d'instructions *)
+  (*Boucle TantQue représentée par la conditin d'arrêt de la boucle et le bloc d'instructions *)  
   | TantQue of expression * bloc
   (* return d'une fonction *)
   | Retour of expression
@@ -105,6 +107,7 @@ struct
     | Null
     | New of typ
     | Adress of Tds.info_ast
+    | Ternaire of expression * expression * expression
 
   (* instructions existantes dans notre langage *)
   (* ~ instruction de l'AST syntaxique où les noms des identifiants ont été
@@ -160,6 +163,7 @@ type expression =
   | Null
   | New of typ
   | Adress of Tds.info_ast
+  | Ternaire of expression * expression * expression
 
 (* instructions existantes Rat *)
 (* = instruction de AstTds + informations associées aux identificateurs, mises à jour *)
