@@ -23,7 +23,7 @@ let rec analyse_code_affectable a =
       | _ -> failwith "Internal Error"
     end
   | AstType.Valeur v -> 
-    let nv = analyse_code_affectable v in (nv(*^loadi 1*))             (* TODO : à vérifier *)
+    let nv = analyse_code_affectable v in nv
   
 
 
@@ -38,7 +38,7 @@ let rec analyse_code_expression e =
     | InfoFun(f, _, _) -> c^call "ST" f
     | _ -> failwith "InternalError")
   | AstType.Affectable a -> 
-    let na = analyse_code_affectable a in na            (* TODO : vérifier *)
+    let na = analyse_code_affectable a in na
   | AstType.Booleen b ->
     if b then loadl_int 1 else loadl_int 0
   | AstType.Entier i -> loadl_int i
@@ -58,13 +58,13 @@ let rec analyse_code_expression e =
     | AstType.MultRat -> c1 ^ c2 ^ call "ST" "Rmul"
     | AstType.EquInt -> c1 ^ c2 ^ subr "IEq"
     | AstType.EquBool -> c1 ^ subr "B2I" ^ c2 ^ subr "B2I" ^ subr "IEq" 
-    | AstType.Inf -> c1 ^ c2 ^ subr "ILss") (* VERIFIER *)
+    | AstType.Inf -> c1 ^ c2 ^ subr "ILss")
   | AstType.Null -> subr "MVoid"
-  | AstType.New t -> loadl_int (getTaille t) ^ subr "Malloc"     (* TODO : vérifier *)
+  | AstType.New t -> loadl_int (getTaille t) ^ subr "Malloc"
   | AstType.Adress info ->        
     begin
       match info_ast_to_info info with
-      | InfoVar(_, _, depl, reg) -> loada depl reg                             (* TODO : vérifier *)
+      | InfoVar(_, _, depl, reg) -> loada depl reg 
       | _ -> failwith "Internal Error"
     end
 
