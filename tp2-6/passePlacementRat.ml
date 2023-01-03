@@ -43,9 +43,9 @@ let rec analyse_placement_instruction (i, depl, reg) =
       | _ -> failwith "Internal Error")
     end
   | AstType.Affectation (a,e) ->
-        (AstPlacement.Affectation(a, e), 0)
+    (AstPlacement.Affectation(a, e), 0)
   | AstType.AffichageInt e ->
-      (AstPlacement.AffichageInt e, 0)
+    (AstPlacement.AffichageInt e, 0)
   | AstType.AffichageRat e ->
     (AstPlacement.AffichageRat e, 0)
   | AstType.AffichageBool e ->
