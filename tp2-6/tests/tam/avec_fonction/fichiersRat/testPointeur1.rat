@@ -1,5 +1,5 @@
 test {
-    int *px = (new int);
+    (int *)px = (new int);
     (* px) = 42;
     int x = 3;
     px = &x;

@@ -65,6 +65,13 @@ let rec analyse_placement_instruction (i, depl, reg) =
         | _ -> failwith "Internal Error")
       end
   | AstType.Empty -> AstPlacement.Empty, 0
+  | AstType.Boucle (info, b) ->
+    begin
+      let (nb, t) = analyse_placement_bloc b depl reg in
+      (AstPlacement.Boucle (info, (nb, t)), t)
+    end
+  | AstType.Arret info -> AstPlacement.Arret info, 0
+  | AstType.Continue info -> AstPlacement.Continue info, 0 
 
 
 (* analyse_placement_bloc : AstType.bloc*Int*String -> AstPlacementBloc*Int *)

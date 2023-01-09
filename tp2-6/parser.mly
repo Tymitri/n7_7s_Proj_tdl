@@ -41,6 +41,9 @@ open Ast.AstSyntax
 %token ESP  	(* & *)
 %token PT_INT
 %token DEUX_PT
+%token LOOP
+%token BREAK
+%token CONTINUE
 
 (* Type de l'attribut synthétisé des non-terminaux *)
 %type <programme> prog
@@ -80,13 +83,19 @@ i :
 | IF exp=e li=bloc                  {Conditionnelle (exp, li, [])}
 | WHILE exp=e li=bloc               {TantQue (exp,li)}
 | RETURN exp=e PV                   {Retour (exp)}
+| LOOP li=bloc                      {Boucle li}
+| n=ID DEUX_PT LOOP li=bloc         {BoucleId (n, li)}
+| BREAK PV                          {Arret}
+| BREAK n=ID PV                     {ArretId n}
+| CONTINUE PV                       {Continue}
+| CONTINUE n=ID PV                  {ContinueId n}
 
 
 typ :
 | BOOL          {Bool}
 | INT           {Int}
 | RAT           {Rat}
-| t=typ MULT    {Pointeur (t)}
+| PO t=typ MULT PF    {Pointeur (t)}
 
 e : 
 | CALL n=ID PO lp=e* PF   {AppelFonction (n,lp)}

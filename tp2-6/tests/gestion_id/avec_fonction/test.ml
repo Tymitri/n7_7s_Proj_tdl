@@ -198,6 +198,9 @@ let%test_unit "testPointeur2" =
 let%test_unit "testPointeur3" = 
   let _ = compiler (pathFichiersRat^"testPointeur3.rat") in ()
 
+let%test_unit "testPointeur4" = 
+  let _ = compiler (pathFichiersRat^"testPointeur4.rat") in ()
+
 let%test_unit "testPointeurErreur1" = 
   try 
     let _ = compiler (pathFichiersRat^"testPointeurErreur1.rat")

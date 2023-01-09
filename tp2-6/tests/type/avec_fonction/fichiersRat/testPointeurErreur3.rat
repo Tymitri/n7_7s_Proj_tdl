@@ -1,4 +1,4 @@
 test {
-	int *x = (new int);
-	bool *y = (new int);
+	(int *)x = (new int);
+	(bool *)y = (new int);
 }

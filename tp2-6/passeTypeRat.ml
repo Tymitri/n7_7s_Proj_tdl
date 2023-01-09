@@ -149,7 +149,13 @@ let rec analyse_type_instruction i =
       else raise (TypeInattendu (te, t))
     end
   | AstTds.Empty -> AstType.Empty
-
+  | AstTds.Boucle(info, b) ->
+    begin
+      let nb = analyse_type_bloc b in 
+      AstType.Boucle(info, nb)
+    end
+  | AstTds.Arret info -> AstType.Arret info
+  | AstTds.Continue info -> AstType.Continue info
 
 (* analyse_type_bloc : AstTds.bloc -> AstTypeBloc*)
 (* Vérifie le bon typage et tranforme le bloc en un bloc de type AstType.bloc *)

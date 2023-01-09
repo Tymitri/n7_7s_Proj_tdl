@@ -21,6 +21,7 @@ let rec analyse_tds_affectable tds a modif =
           | InfoVar _ -> AstTds.Ident info
           | InfoConst (_,_) -> if modif then raise (MauvaiseUtilisationIdentifiant n)
                                else AstTds.Ident info                                   (* TODO modifié ! Checker si besoin *)
+          | InfoLoop _ -> raise (MauvaiseUtilisationIdentifiant n)
         end
     end
   | AstSyntax.Valeur v -> AstTds.Valeur (analyse_tds_affectable tds v modif)
@@ -71,6 +72,7 @@ let rec analyse_tds_expression tds e =
         | InfoFun _ -> raise (MauvaiseUtilisationIdentifiant n)
         | InfoVar _ -> AstTds.Adress info
         | InfoConst _ -> raise (MauvaiseUtilisationIdentifiant n)         (* TODO : A vérifier *)
+        | InfoLoop _ -> raise (MauvaiseUtilisationIdentifiant n)
         end
     end
   | AstSyntax.Ternaire (e1, e2, e3) -> 
@@ -167,7 +169,35 @@ let rec analyse_tds_instruction tds oia i =
         let ne = analyse_tds_expression tds e in
         AstTds.Retour (ne,ia)
       end
-
+  | AstSyntax.Boucle b -> 
+    begin  
+      failwith "todo"
+    end 
+  | AstSyntax.BoucleId (n, b) -> 
+    begin
+      match chercherGlobalement tds n with
+      | None -> 
+        let info = InfoLoop(n) in
+        let ia = info_to_info_ast info in
+        let nb = analyse_tds_bloc tds oia b in
+        ajouter tds n ia;
+        AstTds.Boucle(ia, nb)
+      | Some _ -> raise (DoubleDeclaration n)
+    end
+  | AstSyntax.Arret -> failwith "todo"
+  | AstSyntax.ArretId n -> 
+    begin
+      match chercherGlobalement tds n with
+      | None -> raise (IdentifiantNonDeclare n) 
+      | Some a -> AstTds.Arret(a)
+    end
+  | AstSyntax.Continue -> failwith "todo"
+  | AstSyntax.ContinueId n -> 
+    begin
+      match chercherGlobalement tds n with
+      | None -> raise (IdentifiantNonDeclare n) 
+      | Some a -> AstTds.Continue(a)
+    end
 (* analyse_tds_bloc : tds -> info_ast option -> AstSyntax.bloc -> AstTds.bloc *)
 (* Paramètre tds : la table des symboles courante *)
 (* Paramètre oia : None si le bloc li est dans le programme principal,
