@@ -3,9 +3,32 @@
 open Tds
 open Exceptions
 open Ast
+open Stack
 
 type t1 = Ast.AstSyntax.programme
 type t2 = Ast.AstTds.programme
+
+(* Retourne un identifiant unique pour les boucles *)
+let getIdLoop =
+    let num = ref 0 in
+    fun () ->
+      num := (!num)+1 ;
+      "loop"^(string_of_int (!num))
+
+(* Cherche une InfoLoop dans une pile ayant un certain nom*)
+let rec searchInfoLoopPile n pile =
+  if (is_empty pile)
+    then raise (IdentifiantNonDeclare n)
+    else 
+      let info = pop pile in
+      match info_ast_to_info info with 
+      | InfoConst _ -> failwith "Internal Error"
+      | InfoFun _ -> failwith "Internal Error"
+      | InfoVar _ -> failwith "Internal Error"
+      | InfoLoop(id, name) ->
+        if (id = name) then info
+        else searchInfoLoopPile n pile
+
 
 
 let rec analyse_tds_affectable tds a modif = 
@@ -93,7 +116,7 @@ let rec analyse_tds_expression tds e =
 (* Vérifie la bonne utilisation des identifiants et tranforme l'instruction
 en une instruction de type AstTds.instruction *)
 (* Erreur si mauvaise utilisation des identifiants *)
-let rec analyse_tds_instruction tds oia i =
+let rec analyse_tds_instruction tds pile oia i =
   match i with
   | AstSyntax.Declaration (t, n, e) ->
       begin
@@ -145,16 +168,16 @@ let rec analyse_tds_instruction tds oia i =
       (* Analyse de la condition *)
       let nc = analyse_tds_expression tds c in
       (* Analyse du bloc then *)
-      let tast = analyse_tds_bloc tds oia t in
+      let tast = analyse_tds_bloc tds pile oia t in
       (* Analyse du bloc else *)
-      let east = analyse_tds_bloc tds oia e in
+      let east = analyse_tds_bloc tds pile oia e in
       (* Renvoie la nouvelle structure de la conditionnelle *)
       AstTds.Conditionnelle (nc, tast, east)
   | AstSyntax.TantQue (c,b) ->
       (* Analyse de la condition *)
       let nc = analyse_tds_expression tds c in
       (* Analyse du bloc *)
-      let bast = analyse_tds_bloc tds oia b in
+      let bast = analyse_tds_bloc tds pile oia b in
       (* Renvoie la nouvelle structure de la boucle *)
       AstTds.TantQue (nc, bast)
   | AstSyntax.Retour (e) ->
@@ -171,32 +194,45 @@ let rec analyse_tds_instruction tds oia i =
       end
   | AstSyntax.Boucle b -> 
     begin  
-      failwith "todo"
+      let id = getIdLoop () in
+      let info = InfoLoop(id, "") in
+      let ia = info_to_info_ast info in
+      let nb = analyse_tds_bloc tds pile oia b in
+      push ia pile;
+      AstTds.Boucle(ia, nb)
     end 
   | AstSyntax.BoucleId (n, b) -> 
     begin
-      match chercherGlobalement tds n with
-      | None -> 
-        let info = InfoLoop(n) in
-        let ia = info_to_info_ast info in
-        let nb = analyse_tds_bloc tds oia b in
-        ajouter tds n ia;
-        AstTds.Boucle(ia, nb)
-      | Some _ -> raise (DoubleDeclaration n)
+      let id = getIdLoop () in
+      let info = InfoLoop(id, n) in
+      let ia = info_to_info_ast info in
+      let nb = analyse_tds_bloc tds pile oia b in
+      push ia pile;
+      AstTds.Boucle(ia, nb)
     end
-  | AstSyntax.Arret -> failwith "todo"
+  | AstSyntax.Arret -> 
+    begin
+      if (is_empty pile) then raise (OutsideALoop "break")
+      else 
+        let ia = top pile in
+        AstTds.Arret ia
+    end
   | AstSyntax.ArretId n -> 
     begin
-      match chercherGlobalement tds n with
-      | None -> raise (IdentifiantNonDeclare n) 
-      | Some a -> AstTds.Arret(a)
+      let ia = searchInfoLoopPile n pile in
+      AstTds.Arret ia
     end
-  | AstSyntax.Continue -> failwith "todo"
+  | AstSyntax.Continue -> 
+    begin
+      if (is_empty pile) then raise (OutsideALoop "continue")
+      else 
+        let ia = top pile in
+        AstTds.Continue ia
+    end
   | AstSyntax.ContinueId n -> 
     begin
-      match chercherGlobalement tds n with
-      | None -> raise (IdentifiantNonDeclare n) 
-      | Some a -> AstTds.Continue(a)
+      let ia = searchInfoLoopPile n pile in
+      AstTds.Continue ia
     end
 (* analyse_tds_bloc : tds -> info_ast option -> AstSyntax.bloc -> AstTds.bloc *)
 (* Paramètre tds : la table des symboles courante *)
@@ -205,13 +241,13 @@ let rec analyse_tds_instruction tds oia i =
 (* Paramètre li : liste d'instructions à analyser *)
 (* Vérifie la bonne utilisation des identifiants et tranforme le bloc en un bloc de type AstTds.bloc *)
 (* Erreur si mauvaise utilisation des identifiants *)
-and analyse_tds_bloc tds oia li =
+and analyse_tds_bloc tds pile oia li =
   (* Entrée dans un nouveau bloc, donc création d'une nouvelle tds locale
   pointant sur la table du bloc parent *)
   let tdsbloc = creerTDSFille tds in
   (* Analyse des instructions du bloc avec la tds du nouveau bloc.
      Cette tds est modifiée par effet de bord *)
-   let nli = List.map (analyse_tds_instruction tdsbloc oia) li in
+   let nli = List.map (analyse_tds_instruction tdsbloc pile oia) li in
    (* afficher_locale tdsbloc ; *) (* décommenter pour afficher la table locale *)
    nli
 
@@ -238,7 +274,8 @@ let analyse_tds_fonction maintds (AstSyntax.Fonction(typ, ident, lp, li))  =
     ajouter maintds ident infoAst;
     let tdsFille = creerTDSFille maintds in 
     let infoParam = List.map (analyseParam tdsFille) lp in
-    let bloc = analyse_tds_bloc tdsFille (Some infoAst) li in
+    let pile = create () in
+    let bloc = analyse_tds_bloc tdsFille pile (Some infoAst) li in
     AstTds.Fonction (typ, infoAst, infoParam, bloc)
   
 
@@ -250,5 +287,6 @@ en un programme de type AstTds.programme *)
 let analyser (AstSyntax.Programme (fonctions,prog)) =
   let tds = creerTDSMere () in
   let nf = List.map (analyse_tds_fonction tds) fonctions in
-  let nb = analyse_tds_bloc tds None prog in
+  let pile = create () in
+  let nb = analyse_tds_bloc tds pile None prog in
   AstTds.Programme (nf,nb)

@@ -9,8 +9,8 @@ type info =
   | InfoVar of string * typ * int * string
   (* Information associée à une fonction : son nom (utile pour l'appel), son type de retour et la liste des types des paramètres *)
   | InfoFun of string * typ * typ list
-  (* Information concernant les boucles : Son nom  .... *)
-  | InfoLoop of string
+  (* Information concernant les boucles : Son identifiant unique et son label *)
+  | InfoLoop of string * string
 
 (* Table des symboles *)
 type tds 
