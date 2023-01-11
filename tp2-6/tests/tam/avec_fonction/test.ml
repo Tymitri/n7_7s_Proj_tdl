@@ -80,3 +80,35 @@ let%expect_test "testPointeur1" =
 let%expect_test "testternaire1" =
   runtam (pathFichiersRat^"testternaire1.rat");
   [%expect{| true |}]
+
+let%expect_test "testBoucle1" =
+  runtam (pathFichiersRat^"testBoucle1.rat");
+  [%expect{| 012345678910 |}]
+
+let%expect_test "testBoucle2" =
+  runtam (pathFichiersRat^"testBoucle2.rat");
+  [%expect{| 1266645 |}]
+
+let%expect_test "testBoucle3" =
+  runtam (pathFichiersRat^"testBoucle3.rat");
+  [%expect{| 240 |}]
+
+let%expect_test "testBoucle4" =
+  runtam (pathFichiersRat^"testBoucle4.rat");
+  [%expect{| 0123456789101112131415161718192021222301234567891011121314151617181920212223 |}]
+
+let%expect_test "testBoucle5" =
+  runtam (pathFichiersRat^"testBoucle5.rat");
+  [%expect{| 0123456789101112131415161718192021222301234567891011121314151617181920212223 |}]
+
+let%expect_test "testBoucle6" =
+  runtam (pathFichiersRat^"testBoucle6.rat");
+  [%expect{| 01234567891011121314151617181920212223 |}]
+
+let%expect_test "testBoucle7" =
+  runtam (pathFichiersRat^"testBoucle7.rat");
+  [%expect{| 1010 |}]
+
+let%expect_test "testBoucle8" =
+  runtam (pathFichiersRat^"testBoucle8.rat");
+  [%expect{| 0101010101888 |}]

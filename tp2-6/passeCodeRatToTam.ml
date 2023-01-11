@@ -30,7 +30,7 @@ let rec analyse_pointeur a =
 (* analyse_code_affectable : AstPlacement.affectable -> String *)
 (* Paramètre a : l'affectable à analyser *)
 (* Transforme l'affectable en une expression de type String *)
-let rec analyse_code_affectable a stocker = 
+let analyse_code_affectable a stocker = 
   match a with
   | AstType.Ident info -> 
     begin
@@ -164,9 +164,29 @@ let rec analyse_code_instruction i =
         (ne^(return tailleRet tailleParam))
       end
   | AstPlacement.Empty -> ""
-  | AstPlacement.Boucle(ia, b) -> failwith "TODO"
-  | AstPlacement.Arret(ia) -> failwith "TODO"
-  | AstPlacement.Continue(ia) -> failwith "TODO"
+  | AstPlacement.Boucle(ia, b) -> 
+    (match (info_ast_to_info ia) with
+    | InfoLoop(id, _) ->
+      let startloop = "start" ^ id in
+      let endloop = "end" ^ id in   
+      let nb = analyse_code_bloc b  in
+      (label startloop 
+        ^ nb
+        ^ (jump startloop)
+        ^ label endloop)
+    | _ -> failwith "Internal Error")
+  | AstPlacement.Arret(ia) -> 
+    (match (info_ast_to_info ia) with
+    | InfoLoop(id, _) ->
+      let endloop = "end" ^ id in   
+      (jump endloop)
+    | _ -> failwith "Internal Error")
+  | AstPlacement.Continue(ia) -> 
+    (match (info_ast_to_info ia) with
+    | InfoLoop(id, _) ->
+      let startloop = "start" ^ id in   
+      (jump startloop)
+    | _ -> failwith "Internal Error")
 
 
 (* analyse_code_bloc : AstPlacement.bloc*Int -> String *)

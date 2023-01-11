@@ -21,28 +21,24 @@ let rec searchInfoLoopPile n pile =
     then raise (IdentifiantNonDeclare n)
     else 
       let info = pop pile in
-      match info_ast_to_info info with 
-      | InfoConst _ -> failwith "Internal Error"
-      | InfoFun _ -> failwith "Internal Error"
-      | InfoVar _ -> failwith "Internal Error"
+      match info_ast_to_info info with
       | InfoLoop(_, name) ->
         if (n = name) then info
         else searchInfoLoopPile n pile
+      | _ -> failwith "Internal Error"
 
 let rec printPile pile = 
   if (is_empty pile) then ()
   else
     let info = pop pile in
-    match info_ast_to_info info with 
-    | InfoConst _ -> failwith "Internal Error"
-    | InfoFun _ -> failwith "Internal Error"
-    | InfoVar _ -> failwith "Internal Error"
+    match info_ast_to_info info with
     | InfoLoop(id, name) ->
       print_string id;
       print_string " : ";
       print_string name;
       print_string " -> ";
       printPile pile
+    | _ -> failwith "Internal Error"
 
 
 
@@ -107,10 +103,8 @@ let rec analyse_tds_expression tds e =
       | Some info ->
         begin
         match info_ast_to_info info with
-        | InfoFun _ -> raise (MauvaiseUtilisationIdentifiant n)
         | InfoVar _ -> AstTds.Adress info
-        | InfoConst _ -> raise (MauvaiseUtilisationIdentifiant n)         (* TODO : A vérifier *)
-        | InfoLoop _ -> raise (MauvaiseUtilisationIdentifiant n)
+        | _ -> raise (MauvaiseUtilisationIdentifiant n)
         end
     end
   | AstSyntax.Ternaire (e1, e2, e3) -> 
