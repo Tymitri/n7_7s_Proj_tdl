@@ -164,6 +164,9 @@ let rec analyse_code_instruction i =
         (ne^(return tailleRet tailleParam))
       end
   | AstPlacement.Empty -> ""
+  | AstPlacement.Boucle(ia, b) -> failwith "TODO"
+  | AstPlacement.Arret(ia) -> failwith "TODO"
+  | AstPlacement.Continue(ia) -> failwith "TODO"
 
 
 (* analyse_code_bloc : AstPlacement.bloc*Int -> String *)

@@ -2,3 +2,4 @@ test{
   if false {
     int x = 3;
   }
+}

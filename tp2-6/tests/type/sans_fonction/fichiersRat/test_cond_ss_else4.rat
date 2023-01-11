@@ -3,3 +3,4 @@ test{
   if x{
     int x = 3;
   }
+}

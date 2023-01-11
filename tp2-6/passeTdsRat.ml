@@ -25,9 +25,24 @@ let rec searchInfoLoopPile n pile =
       | InfoConst _ -> failwith "Internal Error"
       | InfoFun _ -> failwith "Internal Error"
       | InfoVar _ -> failwith "Internal Error"
-      | InfoLoop(id, name) ->
-        if (id = name) then info
+      | InfoLoop(_, name) ->
+        if (n = name) then info
         else searchInfoLoopPile n pile
+
+let rec printPile pile = 
+  if (is_empty pile) then ()
+  else
+    let info = pop pile in
+    match info_ast_to_info info with 
+    | InfoConst _ -> failwith "Internal Error"
+    | InfoFun _ -> failwith "Internal Error"
+    | InfoVar _ -> failwith "Internal Error"
+    | InfoLoop(id, name) ->
+      print_string id;
+      print_string " : ";
+      print_string name;
+      print_string " -> ";
+      printPile pile
 
 
 
@@ -78,7 +93,7 @@ let rec analyse_tds_expression tds e =
   | AstSyntax.Unaire (op, e1) -> 
     let ne = analyse_tds_expression tds e1 in 
     AstTds.Unaire(op, ne)
-  (* Opération binaire représentée par l'opérateur, l'opérande gauche et l'opérande droite *)
+  (* Opération binaire représentée par l'opérateur, l'opérande gauche    l'opérande droite *)
   | AstSyntax.Binaire (op, e1, e2) -> 
     let ne1 = analyse_tds_expression tds e1 in
     let ne2 = analyse_tds_expression tds e2 in
@@ -193,12 +208,13 @@ let rec analyse_tds_instruction tds pile oia i =
         AstTds.Retour (ne,ia)
       end
   | AstSyntax.Boucle b -> 
-    begin  
+    begin
       let id = getIdLoop () in
       let info = InfoLoop(id, "") in
       let ia = info_to_info_ast info in
-      let nb = analyse_tds_bloc tds pile oia b in
       push ia pile;
+      let nb = analyse_tds_bloc tds pile oia b in
+      let _ = pop pile in
       AstTds.Boucle(ia, nb)
     end 
   | AstSyntax.BoucleId (n, b) -> 
@@ -206,20 +222,21 @@ let rec analyse_tds_instruction tds pile oia i =
       let id = getIdLoop () in
       let info = InfoLoop(id, n) in
       let ia = info_to_info_ast info in
-      let nb = analyse_tds_bloc tds pile oia b in
       push ia pile;
+      let nb = analyse_tds_bloc tds pile oia b in
+      let _ = pop pile in
       AstTds.Boucle(ia, nb)
     end
   | AstSyntax.Arret -> 
     begin
       if (is_empty pile) then raise (OutsideALoop "break")
-      else 
+      else
         let ia = top pile in
         AstTds.Arret ia
     end
   | AstSyntax.ArretId n -> 
     begin
-      let ia = searchInfoLoopPile n pile in
+      let ia = searchInfoLoopPile n (copy pile) in
       AstTds.Arret ia
     end
   | AstSyntax.Continue -> 
@@ -231,9 +248,12 @@ let rec analyse_tds_instruction tds pile oia i =
     end
   | AstSyntax.ContinueId n -> 
     begin
-      let ia = searchInfoLoopPile n pile in
+      let ia = searchInfoLoopPile n (copy pile) in
       AstTds.Continue ia
     end
+
+  
+
 (* analyse_tds_bloc : tds -> info_ast option -> AstSyntax.bloc -> AstTds.bloc *)
 (* Paramètre tds : la table des symboles courante *)
 (* Paramètre oia : None si le bloc li est dans le programme principal,

@@ -229,6 +229,30 @@ let%test_unit "testPointeurErreur4" =
   with
   | MauvaiseUtilisationIdentifiant("a") -> ()
 
+let%test_unit "testBoucle1" = 
+  let _ = compiler (pathFichiersRat^"testBoucle1.rat") in ()
+
+let%test_unit "testBoucle2" = 
+  let _ = compiler (pathFichiersRat^"testBoucle2.rat") in ()
+
+let%test_unit "testBoucle3" = 
+  let _ = compiler (pathFichiersRat^"testBoucle3.rat") in ()
+
+let%test_unit "testBoucle4" = 
+  let _ = compiler (pathFichiersRat^"testBoucle4.rat") in ()
+
+let%test_unit "testBoucle5" = 
+  let _ = compiler (pathFichiersRat^"testBoucle5.rat") in ()
+
+let%test_unit "testBoucle6" = 
+  let _ = compiler (pathFichiersRat^"testBoucle6.rat") in ()
+
+let%test_unit "testBoucle7" = 
+  let _ = compiler (pathFichiersRat^"testBoucle7.rat") in ()
+
+let%test_unit "testBoucle8" = 
+  let _ = compiler (pathFichiersRat^"testBoucle8.rat") in ()
+
 (* Fichiers de tests de la génération de code -> doivent passer la TDS *)
 open Unix
 open Filename
